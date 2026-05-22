@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IdeaBoard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f11;
+    --surface: #1a1a1e;
+    --card: #222228;
+    --border: #2e2e36;
+    --accent: #7c6af7;
+    --accent2: #4ecdc4;
+    --text: #f0f0f5;
+    --muted: #888899;
+    --danger: #e24b4a;
+    --yellow: #f5c542;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+  }
+
+  h1,h2,h3 { font-family: 'Syne', sans-serif; }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ===== AUTH SCREEN ===== */
+  #screen-auth {
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .auth-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .brand {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 0.25rem;
+  }
+
+  .brand-sub {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  .tabs-auth {
+    display: flex;
+    gap: 0;
+    background: var(--card);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    margin-bottom: 1.5rem;
+  }
+
+  .tab-auth {
+    flex: 1;
+    padding: 0.5rem;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+
+  .tab-auth.active {
+    background: var(--accent);
+    color: white;
+    font-weight: 500;
+  }
+
+  label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  input[type=text], input[type=email], input[type=password], textarea, select {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    padding: 0.7rem 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 1rem;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+  }
+
+  textarea { resize: vertical; min-height: 90px; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1.4rem;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    width: 100%;
+  }
+
+  .btn-primary:hover { background: #6a58e0; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.82rem;
+  }
+
+  .btn-danger { background: var(--danger); color: white; }
+
+  .error-msg {
+    background: #3a1515;
+    border: 1px solid var(--danger);
+    color: #f09595;
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    display: none;
+  }
+
+  /* ===== MAIN APP ===== */
+  #screen-app {
+    flex-direction: column;
+  }
+
+  /* NAVBAR */
+  .navbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav-brand {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+  }
+
+  /* NAV TABS */
+  .nav-tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding: 1rem 1.5rem 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .nav-tab {
+    padding: 0.5rem 1.1rem;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    border: 1px solid transparent;
+    border-bottom: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .nav-tab.active {
+    background: var(--bg);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  /* PAGES */
+  .page { display: none; padding: 1.5rem; flex: 1; }
+  .page.active { display: block; }
+
+  /* ===== IDEA CARD ===== */
+  .ideas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+
+  .idea-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    transition: border-color 0.2s;
+    position: relative;
+  }
+
+  .idea-card:hover { border-color: var(--accent); }
+
+  .idea-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.6rem;
+  }
+
+  .idea-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    margin-right: 0.5rem;
+  }
+
+  .privacy-badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .badge-public { background: #1a3a2a; color: var(--accent2); border: 1px solid #2a5a3a; }
+  .badge-private { background: #2a1a1a; color: #e24b4a; border: 1px solid #4a2a2a; }
+  .badge-invite { background: #1a1a3a; color: #7c9af7; border: 1px solid #2a2a5a; }
+
+  .idea-desc {
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .idea-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .idea-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border);
+    padding-top: 0.75rem;
+    margin-top: auto;
+  }
+
+  .idea-author {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  .idea-actions {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .idea-owner-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+  }
+
+  /* ===== PROFILE ===== */
+  .profile-header {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .profile-avatar-lg {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .profile-info h2 {
+    font-size: 1.4rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .profile-info p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  /* ===== REQUESTS ===== */
+  .request-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    gap: 1rem;
+  }
+
+  .request-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .request-title {
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+    font-size: 0.95rem;
+  }
+
+  .request-sub {
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+
+  .notification-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 0.4rem;
+  }
+
+  /* ===== PAGE HEADER ===== */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .page-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--muted);
+    padding: 3rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .empty-state .icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  /* PRIVACY SELECT styled */
+  .privacy-select-row {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .privacy-opt {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .privacy-opt.selected { border-color: var(--accent); background: rgba(124,106,247,0.1); }
+  .privacy-opt span { display: block; font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
+
+  .section-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Feed explore public */
+  .explore-filter {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-chip {
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .filter-chip.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* Collaborators list */
+  .collab-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .collab-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem;
+    background: var(--card);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    font-size: 0.88rem;
+  }
+
+  .collab-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent2);
+    color: #04342c;
+    font-size: 0.72rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'Syne', sans-serif;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media(max-width:480px) {
+    .nav-tabs { gap: 0; }
+    .ideas-grid { grid-template-columns: 1fr; }
+    .profile-header { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ SCREEN: AUTH -->
+<div class="screen active" id="screen-auth">
+  <div class="auth-box">
+    <div class="brand">💡 IdeaBoard</div>
+    <div class="brand-sub">Tu espacio para ideas de negocio</div>
+
+    <div class="tabs-auth">
+      <button class="tab-auth active" onclick="switchAuthTab('login')">Entrar</button>
+      <button class="tab-auth" onclick="switchAuthTab('register')">Registrarme</button>
+    </div>
+
+    <div id="auth-error" class="error-msg"></div>
+
+    <!-- LOGIN -->
+    <div id="form-login">
+      <label>Usuario o email</label>
+      <input type="text" id="login-user" placeholder="tu@email.com" autocomplete="username">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+      <button class="btn btn-primary" onclick="doLogin()">Entrar</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="form-register" style="display:none">
+      <label>Nombre completo</label>
+      <input type="text" id="reg-name" placeholder="Ana García">
+      <label>Usuario (único)</label>
+      <input type="text" id="reg-user" placeholder="ana.garcia">
+      <label>Email</label>
+      <input type="email" id="reg-email" placeholder="ana@email.com">
+      <label>Contraseña</label>
+      <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      <button class="btn btn-primary" onclick="doRegister()">Crear cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SCREEN: APP -->
+<div class="screen" id="screen-app">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-brand">💡 IdeaBoard</div>
+    <div class="nav-right">
+      <button class="btn btn-ghost btn-sm" onclick="openNewIdeaModal()">+ Nueva idea</button>
+      <div class="avatar" id="nav-avatar" onclick="showPage('profile')" title="Mi perfil"></div>
+    </div>
+  </nav>
+
+  <!-- NAV TABS -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('misideas')" id="tab-misideas">Mis ideas</button>
+    <button class="nav-tab" onclick="showPage('explorar')" id="tab-explorar">Explorar</button>
+    <button class="nav-tab" onclick="showPage('solicitudes')" id="tab-solicitudes">Solicitudes <span id="req-dot" style="display:none" class="notification-dot"></span></button>
+    <button class="nav-tab" onclick="showPage('profile')" id="tab-profile">Mi perfil</button>
+  </div>
+
+  <!-- ===== PAGE: MIS IDEAS ===== -->
+  <div class="page active" id="page-misideas">
+    <div class="page-header">
+      <h2 class="page-title">Mis ideas</h2>
+      <button class="btn btn-ghost btn-sm" onclick="openNewIdeaModal()">+ Agregar</button>
+    </div>
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:0.5rem">Solo vos ves las privadas. Las de acceso por invitación las pueden ver quienes vos aceptás.</p>
+    <div class="ideas-grid" id="my-ideas-grid">
+      <div class="empty-state"><span class="icon">🌱</span>No tenés ideas todavía.<br>¡Empezá con una!</div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: EXPLORAR ===== -->
+  <div class="page" id="page-explorar">
+    <div class="page-header">
+      <h2 class="page-title">Explorar</h2>
+    </div>
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:0.75rem">Ideas públicas e ideas con acceso por solicitud de otros usuarios.</p>
+    <div class="explore-filter">
+      <button class="filter-chip active" onclick="filterExplore('all',this)">Todas</button>
+      <button class="filter-chip" onclick="filterExplore('public',this)">Públicas</button>
+      <button class="filter-chip" onclick="filterExplore('invite',this)">Por invitación</button>
+    </div>
+    <div class="ideas-grid" id="explore-grid">
+      <div class="empty-state"><span class="icon">🔭</span>No hay ideas públicas aún.</div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: SOLICITUDES ===== -->
+  <div class="page" id="page-solicitudes">
+    <h2 class="page-title" style="margin-bottom:1rem">Solicitudes</h2>
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1.25rem">Personas que quieren unirse a tus proyectos por invitación.</p>
+    <div id="requests-list">
+      <div class="empty-state"><span class="icon">📬</span>Sin solicitudes pendientes.</div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: PROFILE ===== -->
+  <div class="page" id="page-profile">
+    <div class="profile-header">
+      <div class="profile-avatar-lg" id="profile-avatar-lg"></div>
+      <div class="profile-info">
+        <h2 id="profile-name-display"></h2>
+        <p id="profile-user-display"></p>
+        <p id="profile-email-display"></p>
+      </div>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem">
+      <h3 style="font-size:1rem;margin-bottom:1rem">Editar perfil</h3>
+      <label>Nombre</label>
+      <input type="text" id="edit-name">
+      <label>Bio corta</label>
+      <input type="text" id="edit-bio" placeholder="Ej: Emprendedor, fan del café ☕">
+      <button class="btn btn-ghost" onclick="saveProfile()" style="width:100%">Guardar cambios</button>
+    </div>
+
+    <button class="btn btn-ghost" onclick="doLogout()" style="border-color:var(--danger);color:var(--danger);width:100%">Cerrar sesión</button>
+  </div>
+
+</div>
+
+<!-- ============================================================ MODAL: NUEVA IDEA -->
+<div class="modal-overlay" id="modal-idea">
+  <div class="modal">
+    <div class="modal-title" id="modal-idea-title">Nueva idea</div>
+
+    <label>Nombre de la idea</label>
+    <input type="text" id="idea-name" placeholder="Ej: App de delivery para mascotas">
+
+    <label>Descripción</label>
+    <textarea id="idea-desc" placeholder="Contá de qué se trata tu idea, el problema que resuelve..."></textarea>
+
+    <label>Etiquetas (separadas por coma)</label>
+    <input type="text" id="idea-tags" placeholder="tech, fintech, salud, educación...">
+
+    <div class="section-label" style="margin-bottom:0.5rem">Privacidad</div>
+    <div class="privacy-select-row">
+      <div class="privacy-opt selected" id="opt-private" onclick="selectPrivacy('private')">
+        🔒 <span>Privada</span>
+      </div>
+      <div class="privacy-opt" id="opt-invite" onclick="selectPrivacy('invite')">
+        🔗 <span>Por solicitud</span>
+      </div>
+      <div class="privacy-opt" id="opt-public" onclick="selectPrivacy('public')">
+        🌍 <span>Pública</span>
+      </div>
+    </div>
+
+    <div id="privacy-desc" style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem;margin-top:-0.5rem">
+      Solo vos podés ver esta idea.
+    </div>
+
+    <div id="error-idea" class="error-msg"></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-idea')">Cancelar</button>
+      <button class="btn btn-primary" style="width:auto" onclick="saveIdea()">Guardar idea</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ MODAL: VER IDEA -->
+<div class="modal-overlay" id="modal-view-idea">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1rem">
+      <div class="modal-title" id="view-idea-title" style="margin-bottom:0;flex:1"></div>
+      <span class="privacy-badge" id="view-idea-badge"></span>
+    </div>
+
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:0.5rem">Por <strong id="view-idea-author"></strong></p>
+
+    <div id="view-idea-tags" style="margin-bottom:1rem"></div>
+
+    <p id="view-idea-desc" style="line-height:1.7;font-size:0.95rem;margin-bottom:1.5rem"></p>
+
+    <!-- Colaboradores -->
+    <div id="view-collabs-section">
+      <div class="section-label">Colaboradores</div>
+      <div class="collab-list" id="view-collabs-list"></div>
+    </div>
+
+    <!-- Botón solicitar (para ideas con invite) -->
+    <div id="view-request-section" style="margin-top:1.25rem"></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-view-idea')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SCRIPTS -->
+<script>
+// ===== STORAGE HELPERS =====
+const DB = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)) } catch(e) { return null } },
+  set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+};
+
+function getUsers()   { return DB.get('ib_users') || {} }
+function getIdeas()   { return DB.get('ib_ideas') || [] }
+function getRequests(){ return DB.get('ib_requests') || [] }
+function setUsers(u)  { DB.set('ib_users', u) }
+function setIdeas(i)  { DB.set('ib_ideas', i) }
+function setRequests(r){ DB.set('ib_requests', r) }
+
+let currentUser = null;
+let editingIdeaId = null;
+let selectedPrivacy = 'private';
+let exploreFilter = 'all';
+
+// ===== AUTH =====
+function switchAuthTab(tab) {
+  document.querySelectorAll('.tab-auth').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('form-login').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('form-register').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function doLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  const users = getUsers();
+  const user = Object.values(users).find(x => (x.username === u || x.email === u) && x.password === p);
+  if (!user) return showAuthError('Usuario o contraseña incorrectos.');
+  currentUser = user;
+  enterApp();
+}
+
+function doRegister() {
+  const name  = document.getElementById('reg-name').value.trim();
+  const uname = document.getElementById('reg-user').value.trim().toLowerCase().replace(/\s+/g,'');
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('reg-pass').value;
+
+  if (!name || !uname || !email || !pass) return showAuthError('Completá todos los campos.');
+  if (pass.length < 6) return showAuthError('La contraseña debe tener al menos 6 caracteres.');
+
+  const users = getUsers();
+  if (Object.values(users).find(x => x.username === uname)) return showAuthError('Ese usuario ya existe.');
+  if (Object.values(users).find(x => x.email === email))   return showAuthError('Ese email ya está registrado.');
+
+  const id = 'u_' + Date.now();
+  const user = { id, name, username: uname, email, password: pass, bio: '', createdAt: Date.now() };
+  users[id] = user;
+  setUsers(users);
+  currentUser = user;
+  enterApp();
+}
+
+function enterApp() {
+  DB.set('ib_session', currentUser.id);
+  document.getElementById('screen-auth').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+  initApp();
+}
+
+function doLogout() {
+  localStorage.removeItem('ib_session');
+  currentUser = null;
+  location.reload();
+}
+
+// ===== INIT =====
+function initApp() {
+  const initials = currentUser.name.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
+  document.getElementById('nav-avatar').textContent = initials;
+  document.getElementById('profile-avatar-lg').textContent = initials;
+  document.getElementById('profile-name-display').textContent = currentUser.name;
+  document.getElementById('profile-user-display').textContent = '@' + currentUser.username;
+  document.getElementById('profile-email-display').textContent = currentUser.email;
+  document.getElementById('edit-name').value = currentUser.name;
+  document.getElementById('edit-bio').value = currentUser.bio || '';
+  renderMyIdeas();
+  renderExplore();
+  renderRequests();
+  updateReqDot();
+}
+
+// ===== PAGES =====
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const tab = document.getElementById('tab-' + page);
+  if (tab) tab.classList.add('active');
+  if (page === 'solicitudes') updateReqDot();
+}
+
+// ===== IDEAS =====
+function generateId() { return 'i_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
+
+function openNewIdeaModal() {
+  editingIdeaId = null;
+  selectedPrivacy = 'private';
+  document.getElementById('idea-name').value = '';
+  document.getElementById('idea-desc').value = '';
+  document.getElementById('idea-tags').value = '';
+  document.getElementById('modal-idea-title').textContent = 'Nueva idea';
+  document.getElementById('error-idea').style.display = 'none';
+  updatePrivacyUI('private');
+  openModal('modal-idea');
+}
+
+function openEditIdeaModal(id) {
+  const ideas = getIdeas();
+  const idea = ideas.find(x => x.id === id);
+  if (!idea) return;
+  editingIdeaId = id;
+  selectedPrivacy = idea.privacy;
+  document.getElementById('idea-name').value = idea.title;
+  document.getElementById('idea-desc').value = idea.description;
+  document.getElementById('idea-tags').value = (idea.tags || []).join(', ');
+  document.getElementById('modal-idea-title').textContent = 'Editar idea';
+  document.getElementById('error-idea').style.display = 'none';
+  updatePrivacyUI(idea.privacy);
+  openModal('modal-idea');
+}
+
+function saveIdea() {
+  const title = document.getElementById('idea-name').value.trim();
+  const desc  = document.getElementById('idea-desc').value.trim();
+  const tagsRaw = document.getElementById('idea-tags').value.trim();
+  const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+  if (!title) {
+    const er = document.getElementById('error-idea');
+    er.textContent = 'Poné un nombre a tu idea.';
+    er.style.display = 'block';
+    return;
+  }
+
+  const ideas = getIdeas();
+  if (editingIdeaId) {
+    const idx = ideas.findIndex(x => x.id === editingIdeaId);
+    if (idx >= 0) {
+      ideas[idx].title = title;
+      ideas[idx].description = desc;
+      ideas[idx].tags = tags;
+      ideas[idx].privacy = selectedPrivacy;
+    }
+  } else {
+    ideas.push({
+      id: generateId(),
+      title, description: desc, tags,
+      privacy: selectedPrivacy,
+      ownerId: currentUser.id,
+      ownerName: currentUser.name,
+      ownerUser: currentUser.username,
+      collaborators: [],
+      createdAt: Date.now()
+    });
+  }
+  setIdeas(ideas);
+  closeModal('modal-idea');
+  renderMyIdeas();
+  renderExplore();
+}
+
+function deleteIdea(id) {
+  if (!confirm('¿Eliminar esta idea? Esta acción no se puede deshacer.')) return;
+  let ideas = getIdeas();
+  ideas = ideas.filter(x => x.id !== id);
+  setIdeas(ideas);
+  renderMyIdeas();
+  renderExplore();
+}
+
+// ===== RENDER MY IDEAS =====
+function renderMyIdeas() {
+  const grid = document.getElementById('my-ideas-grid');
+  const ideas = getIdeas().filter(x => x.ownerId === currentUser.id || (x.collaborators||[]).includes(currentUser.id));
+  if (!ideas.length) {
+    grid.innerHTML = '<div class="empty-state"><span class="icon">🌱</span>No tenés ideas todavía.<br>¡Empezá con una!</div>';
+    return;
+  }
+  grid.innerHTML = ideas.sort((a,b) => b.createdAt - a.createdAt).map(idea => ideaCardHTML(idea, true)).join('');
+}
+
+function ideaCardHTML(idea, isOwner) {
+  const badgeClass = idea.privacy === 'public' ? 'badge-public' : idea.privacy === 'invite' ? 'badge-invite' : 'badge-private';
+  const badgeLabel = idea.privacy === 'public' ? '🌍 Pública' : idea.privacy === 'invite' ? '🔗 Solicitud' : '🔒 Privada';
+  const tagsHtml = (idea.tags||[]).map(t => `<span class="tag">${escHtml(t)}</span>`).join('');
+  const date = new Date(idea.createdAt).toLocaleDateString('es-AR', {day:'numeric',month:'short'});
+  const collabCount = (idea.collaborators||[]).length;
+
+  const ownerActions = isOwner && idea.ownerId === currentUser.id ? `
+    <div class="idea-owner-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openEditIdeaModal('${idea.id}')">✏️ Editar</button>
+      <button class="btn btn-ghost btn-sm" onclick="deleteIdea('${idea.id}')" style="color:var(--danger);border-color:var(--danger)">🗑 Eliminar</button>
+    </div>` : '';
+
+  return `
+    <div class="idea-card">
+      <div class="idea-header">
+        <div class="idea-title">${escHtml(idea.title)}</div>
+        <span class="privacy-badge ${badgeClass}">${badgeLabel}</span>
+      </div>
+      <div class="idea-desc">${escHtml(idea.description) || '<span style="color:var(--muted);font-style:italic">Sin descripción</span>'}</div>
+      ${tagsHtml ? `<div class="idea-tags">${tagsHtml}</div>` : ''}
+      <div class="idea-footer">
+        <span class="idea-author">${date} · ${collabCount ? collabCount + ' colaborador' + (collabCount>1?'es':'') : 'solo'}</span>
+        <div class="idea-actions">
+          <button class="btn btn-ghost btn-sm" onclick="viewIdea('${idea.id}')">Ver</button>
+        </div>
+      </div>
+      ${ownerActions}
+    </div>`;
+}
+
+// ===== RENDER EXPLORE =====
+function renderExplore() {
+  const grid = document.getElementById('explore-grid');
+  const ideas = getIdeas().filter(x => {
+    if (x.ownerId === currentUser.id) return false;
+    if (x.privacy === 'private') return false;
+    if (exploreFilter === 'public' && x.privacy !== 'public') return false;
+    if (exploreFilter === 'invite' && x.privacy !== 'invite') return false;
+    return true;
+  });
+  if (!ideas.length) {
+    grid.innerHTML = '<div class="empty-state"><span class="icon">🔭</span>No hay ideas aquí todavía.</div>';
+    return;
+  }
+  grid.innerHTML = ideas.sort((a,b) => b.createdAt - a.createdAt).map(idea => ideaCardHTML(idea, false)).join('');
+}
+
+function filterExplore(f, btn) {
+  exploreFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderExplore();
+}
+
+// ===== VIEW IDEA =====
+function viewIdea(id) {
+  const ideas = getIdeas();
+  const idea = ideas.find(x => x.id === id);
+  if (!idea) return;
+
+  document.getElementById('view-idea-title').textContent = idea.title;
+  document.getElementById('view-idea-desc').textContent = idea.description || 'Sin descripción.';
+  document.getElementById('view-idea-author').textContent = idea.ownerName + ' (@' + idea.ownerUser + ')';
+
+  const badge = document.getElementById('view-idea-badge');
+  if (idea.privacy === 'public') { badge.className = 'privacy-badge badge-public'; badge.textContent = '🌍 Pública'; }
+  else if (idea.privacy === 'invite') { badge.className = 'privacy-badge badge-invite'; badge.textContent = '🔗 Solicitud'; }
+  else { badge.className = 'privacy-badge badge-private'; badge.textContent = '🔒 Privada'; }
+
+  const tagsEl = document.getElementById('view-idea-tags');
+  tagsEl.innerHTML = (idea.tags||[]).map(t => `<span class="tag">${escHtml(t)}</span>`).join(' ');
+
+  // Collaborators
+  const users = getUsers();
+  const collabSection = document.getElementById('view-collabs-section');
+  const collabList = document.getElementById('view-collabs-list');
+  const collabs = (idea.collaborators||[]).map(uid => users[uid]).filter(Boolean);
+  if (collabs.length) {
+    collabSection.style.display = '';
+    collabList.innerHTML = collabs.map(u => {
+      const initials = u.name.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();
+      return `<div class="collab-item">
+        <div class="collab-avatar">${initials}</div>
+        <span>${escHtml(u.name)}</span>
+        <span style="color:var(--muted);font-size:0.78rem;margin-left:auto">@${escHtml(u.username)}</span>
+      </div>`;
+    }).join('');
+  } else {
+    collabSection.style.display = idea.ownerId === currentUser.id ? '' : 'none';
+    collabList.innerHTML = '<p style="color:var(--muted);font-size:0.85rem">Sin colaboradores aún.</p>';
+  }
+
+  // Request button
+  const reqSection = document.getElementById('view-request-section');
+  if (idea.ownerId !== currentUser.id && idea.privacy === 'invite') {
+    const alreadyCollab = (idea.collaborators||[]).includes(currentUser.id);
+    const requests = getRequests();
+    const alreadyRequested = requests.find(r => r.ideaId === id && r.requesterId === currentUser.id && r.status === 'pending');
+    if (alreadyCollab) {
+      reqSection.innerHTML = '<p style="color:var(--accent2);font-size:0.88rem">✅ Ya sos colaborador de esta idea.</p>';
+    } else if (alreadyRequested) {
+      reqSection.innerHTML = '<p style="color:var(--muted);font-size:0.88rem">⏳ Ya enviaste una solicitud. Esperá la respuesta.</p>';
+    } else {
+      reqSection.innerHTML = `<button class="btn btn-ghost" onclick="requestAccess('${id}')" style="border-color:var(--accent);color:var(--accent)">🙋 Solicitar unirme</button>`;
+    }
+  } else {
+    reqSection.innerHTML = '';
+  }
+
+  openModal('modal-view-idea');
+}
+
+function requestAccess(ideaId) {
+  const ideas = getIdeas();
+  const idea = ideas.find(x => x.id === ideaId);
+  if (!idea) return;
+  const requests = getRequests();
+  requests.push({
+    id: 'r_' + Date.now(),
+    ideaId,
+    ideaTitle: idea.title,
+    requesterId: currentUser.id,
+    requesterName: currentUser.name,
+    requesterUser: currentUser.username,
+    ownerId: idea.ownerId,
+    status: 'pending',
+    createdAt: Date.now()
+  });
+  setRequests(requests);
+  closeModal('modal-view-idea');
+  alert('✅ Solicitud enviada. El dueño de la idea recibirá tu pedido.');
+}
+
+// ===== REQUESTS =====
+function renderRequests() {
+  const list = document.getElementById('requests-list');
+  const requests = getRequests().filter(r => r.ownerId === currentUser.id && r.status === 'pending');
+  if (!requests.length) {
+    list.innerHTML = '<div class="empty-state"><span class="icon">📬</span>Sin solicitudes pendientes.</div>';
+    return;
+  }
+  list.innerHTML = requests.map(r => `
+    <div class="request-card" id="req-${r.id}">
+      <div class="request-info">
+        <div class="request-title">${escHtml(r.requesterName)} <span style="color:var(--muted);font-size:0.82rem">@${escHtml(r.requesterUser)}</span></div>
+        <div class="request-sub">Quiere unirse a: <strong>${escHtml(r.ideaTitle)}</strong></div>
+      </div>
+      <div style="display:flex;gap:0.4rem">
+        <button class="btn btn-primary btn-sm" style="width:auto" onclick="resolveRequest('${r.id}','accept')">✅</button>
+        <button class="btn btn-ghost btn-sm" onclick="resolveRequest('${r.id}','reject')" style="color:var(--danger);border-color:var(--danger)">✗</button>
+      </div>
+    </div>`).join('');
+}
+
+function resolveRequest(reqId, action) {
+  let requests = getRequests();
+  const req = requests.find(r => r.id === reqId);
+  if (!req) return;
+  req.status = action === 'accept' ? 'accepted' : 'rejected';
+  if (action === 'accept') {
+    const ideas = getIdeas();
+    const idea = ideas.find(x => x.id === req.ideaId);
+    if (idea && !idea.collaborators.includes(req.requesterId)) {
+      idea.collaborators.push(req.requesterId);
+      setIdeas(ideas);
+    }
+  }
+  setRequests(requests);
+  renderRequests();
+  renderMyIdeas();
+  updateReqDot();
+}
+
+function updateReqDot() {
+  const pending = getRequests().filter(r => r.ownerId === currentUser.id && r.status === 'pending');
+  const dot = document.getElementById('req-dot');
+  dot.style.display = pending.length ? 'inline-block' : 'none';
+}
+
+// ===== PROFILE =====
+function saveProfile() {
+  const name = document.getElementById('edit-name').value.trim();
+  const bio  = document.getElementById('edit-bio').value.trim();
+  if (!name) return alert('El nombre no puede estar vacío.');
+  const users = getUsers();
+  users[currentUser.id].name = name;
+  users[currentUser.id].bio  = bio;
+  setUsers(users);
+  currentUser.name = name;
+  currentUser.bio  = bio;
+  initApp();
+  alert('✅ Perfil actualizado.');
+}
+
+// ===== PRIVACY UI =====
+function selectPrivacy(p) {
+  selectedPrivacy = p;
+  updatePrivacyUI(p);
+}
+
+function updatePrivacyUI(p) {
+  ['private','invite','public'].forEach(x => {
+    document.getElementById('opt-'+x).classList.toggle('selected', x === p);
+  });
+  const descs = {
+    private: 'Solo vos podés ver esta idea.',
+    invite: 'Cualquiera puede verla en Explorar y pedir unirse. Vos aceptás o rechazás.',
+    public: 'Cualquier usuario puede ver esta idea.'
+  };
+  document.getElementById('privacy-desc').textContent = descs[p];
+}
+
+// ===== MODAL HELPERS =====
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
+
+// ===== UTILS =====
+function escHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ===== BOOTSTRAP =====
+window.addEventListener('load', () => {
+  const sid = DB.get('ib_session');
+  if (sid) {
+    const users = getUsers();
+    if (users[sid]) {
+      currentUser = users[sid];
+      document.getElementById('screen-auth').classList.remove('active');
+      document.getElementById('screen-app').classList.add('active');
+      initApp();
+    }
+  }
+});
+</script>
+</body>
+</html>
